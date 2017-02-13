@@ -115,4 +115,3 @@ co(function*() {
     });
 
 module.exports = App;
-.exports = App;
