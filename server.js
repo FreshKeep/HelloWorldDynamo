@@ -42,15 +42,20 @@ class App {
                         }
                     }
                 }
-
-                var dynamoItem = yield docClient.getItemPromised(params);
-                if ('Item' in dynamoItem) {
-                    var message = dynamoItem.Item.message.S;
-                    appLogger.verbose(`Message stored in DynamoDB = ${message}`);
-                    res.send(message);
-                } else {
-                    res.sendStatus(404);
+                try {
+                    var dynamoItem = yield docClient.getItemPromised(params);
+                    if ('Item' in dynamoItem) {
+                        var message = dynamoItem.Item.message.S;
+                        appLogger.verbose(`Message stored in DynamoDB = ${message}`);
+                        res.send(message);
+                    } else {
+                        res.sendStatus(404);
+                    }
+                } catch (e) {
+                    appLogger.error(`Failed to get entry from DynamoDB table ${tableName}`, e);
+                    res.sendStatus(500);
                 }
+
             });
         });
 
@@ -110,3 +115,4 @@ co(function*() {
     });
 
 module.exports = App;
+.exports = App;
