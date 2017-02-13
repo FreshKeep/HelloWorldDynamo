@@ -1,0 +1,29 @@
+{
+  "name": "hello_world",
+  "version": "1.0.0",
+  "description": "Just a simple hello world app",
+  "main": "app.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Amir",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.12.2",
+    "eslint-config-google": "^0.7.1",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "body-parser": "^1.16.1",
+    "co": "^4.6.0",
+    "express": "^4.14.0",
+    "koa": "^1.2.5",
+    "koa-bodyparser": "^2.3.0",
+    "redis": "^2.6.5",
+    "winston": "^2.3.0",
+    "winston-config": "^0.5.1"
+  }
+}
