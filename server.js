@@ -8,7 +8,8 @@ global.conf = require('./config/appsettings');
 var bodyParser = require('body-parser')
 var awsPromised = require('aws-promised');
 var docClient = awsPromised.dynamoDb({
-    region: "us-east-1"
+    region: "us-east-1",
+    correctClockSkew: true
 });
 var tableName = 'HelloWorld';
 
