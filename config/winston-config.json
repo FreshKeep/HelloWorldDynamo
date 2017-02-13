@@ -1,0 +1,38 @@
+{
+  "logging": {
+    "application": {
+      "console": {
+        "level": "verbose",
+        "colorize": true
+      },
+      "file": {
+        "timestamp": true,
+        "json": false,
+        "filename": "logs/app.log",
+        "maxfiles": 5,
+        "maxsize": 10485760,
+        "level": "verbose"
+      }
+    },
+		"test": {
+      "console": {
+        "level": "verbose",
+        "colorize": true
+      }
+    },
+    "http": {
+      "console": {
+        "level": "warn",
+        "colorize": true
+      },
+      "file": {
+        "timestamp": true,
+        "json": false,
+        "filename": "logs/http.log",
+        "maxfiles": 5,
+        "maxsize": 10485760,
+        "level": "info"
+      }
+    }
+  }
+}
