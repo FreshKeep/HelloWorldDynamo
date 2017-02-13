@@ -3,14 +3,11 @@ var path = require('path');
 var winstonConf = require('winston-config');
 var winston = require('winston');
 global.conf = require('../config/appsettings');
-var redis = require('redis');
-var bluebird = require('bluebird');
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
-var redisClient = redis.createClient({
-    host: global.conf.redisHost,
-    port: 6379
+var awsPromised = require('aws-promised');
+var docClient = awsPromised.dynamoDb({
+    region: "us-east-1"
 });
+var tableName = 'HelloWorld';
 
 winstonConf.fromFileSync(path.join(__dirname, '../config/winston-config.json'), function(error) {
     if (error) {
@@ -28,12 +25,44 @@ var app = require('../server.js');
 var request = require('request-promise');
 
 describe('Hello World Test', function() {
-    it('Redis sanity test', function*() {
-        yield redisClient.setAsync('test', 'true');
-        var reply = yield redisClient.getAsync('test');
-        expect(reply).to.eql('true');
+    it('Dynamo sanity test', function*() {
+        var testMessage = 'This is a unit test';
+        var testId = 'test';
+        var updateEntry = {
+            'TableName': tableName,
+            'Key': {
+                'id': {
+                    'S': testId
+                }
+            },
+            'ExpressionAttributeValues': {
+                ':t': {
+                    'S': String(testMessage)
+                }
+            },
+            'UpdateExpression': 'SET message = :t'
+        }
+        yield docClient.updateItemPromised(updateEntry);
+
+        var params = {
+            AttributesToGet: [
+                "message"
+            ],
+            TableName: tableName,
+            Key: {
+                "id": {
+                    "S": testId
+                }
+            }
+        }
+
+        var dynamoItem = yield docClient.getItemPromised(params);
+        expect(dynamoItem).to.be.not.empty;
+        expect(dynamoItem.Item.message.S).to.eql(testMessage);
+
+
     });
-    it('POST and GET from Redis', function*() {
+    it('POST and GET from Dynamo', function*() {
         var testMessage = "This is a test";
         var testId = "testId";
         var payload = {

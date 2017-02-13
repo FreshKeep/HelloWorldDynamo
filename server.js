@@ -30,7 +30,6 @@ class App {
             co(function*() {
                 var id = req.params.id;
                 appLogger.verbose(`Id = ${id}`);
-                appLogger.verbose(`Message stored in DynamoDB = ${message}`);
 
                 var params = {
                     AttributesToGet: [
@@ -47,6 +46,7 @@ class App {
                 var dynamoItem = yield docClient.getItemPromised(params);
                 if ('Item' in dynamoItem) {
                     var message = dynamoItem.Item.message.S;
+                    appLogger.verbose(`Message stored in DynamoDB = ${message}`);
                     res.send(message);
                 } else {
                     res.sendStatus(404);
