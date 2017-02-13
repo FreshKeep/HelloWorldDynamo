@@ -5,15 +5,12 @@ var winston = require('winston');
 var co = require('co');
 var fs = require('fs');
 global.conf = require('./config/appsettings');
-var redis = require('redis');
-var bluebird = require('bluebird');
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
-var redisClient = redis.createClient({
-    host: global.conf.redisHost,
-    port: 6379
-});
 var bodyParser = require('body-parser')
+var awsPromised = require('aws-promised');
+var docClient = awsPromised.dynamoDb({
+    region: "us-east-1"
+});
+var tableName = 'HelloWorld';
 
 winstonConf.fromFileSync(path.join(__dirname, './config/winston-config.json'), function(error) {
     if (error) {
@@ -33,12 +30,26 @@ class App {
             co(function*() {
                 var id = req.params.id;
                 appLogger.verbose(`Id = ${id}`);
-                var message = yield redisClient.getAsync(id);
-                appLogger.verbose(`Message stored in Redis = ${message}`);
-                if (message === null) {
-                    res.sendStatus(404);
-                } else {
+                appLogger.verbose(`Message stored in DynamoDB = ${message}`);
+
+                var params = {
+                    AttributesToGet: [
+                        "message"
+                    ],
+                    TableName: tableName,
+                    Key: {
+                        "id": {
+                            "S": id
+                        }
+                    }
+                }
+
+                var dynamoItem = yield docClient.getItemPromised(params);
+                if ('Item' in dynamoItem) {
+                    var message = dynamoItem.Item.message.S;
                     res.send(message);
+                } else {
+                    res.sendStatus(404);
                 }
             });
         });
@@ -49,7 +60,30 @@ class App {
                 appLogger.verbose(`Id = ${id}`);
                 var message = req.body.message;
                 appLogger.verbose(`Message = ${message}`);
-                yield redisClient.setAsync(id, message);
+
+                var updateEntry = {
+                    'TableName': tableName,
+                    'Key': {
+                        'id': {
+                            'S': id
+                        }
+                    },
+                    'ExpressionAttributeValues': {
+                        ':t': {
+                            'S': String(message)
+                        }
+                    },
+                    'UpdateExpression': 'SET message = :t'
+                }
+                try {
+                    appLogger.verbose('Adding to DyanmoDB');
+                    yield docClient.updateItemPromised(updateEntry);
+                    appLogger.verbose('Added to DyanmoDB');
+                } catch (e) {
+                    appLogger.error(`Failed to add entry to DynamoDB table ${tableName}`, e);
+                    res.sendStatus(500);
+                }
+
                 res.sendStatus(204);
             })
 

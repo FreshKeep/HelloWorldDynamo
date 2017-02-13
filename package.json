@@ -16,6 +16,7 @@
     "request-promise": "^4.1.1"
   },
   "dependencies": {
+    "aws-promised": "^2.13.0",
     "bluebird": "^3.4.7",
     "body-parser": "^1.16.1",
     "co": "^4.6.0",
